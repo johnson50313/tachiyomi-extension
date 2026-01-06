@@ -18,7 +18,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Headers
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -267,27 +266,6 @@ open class Tachidesk(
     }
 }
 
-// Interceptor Class Definition
-class ApiTokenInterceptor(private val tokenManager: TokenManager) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
-        // Try to access the token property (assuming 'token' or 'accessToken' exists in your TokenManager)
-        // If compilation fails here, check the TokenManager.kt file for the correct property name.
-        // Using 'accessToken' as a safe bet for Tachidesk extensions.
-        val token = tokenManager.accessToken 
-        
-        if (token.isEmpty()) {
-            return chain.proceed(request)
-        }
-
-        val newRequest = request.newBuilder()
-            .header("Authorization", token)
-            .build()
-            
-        return chain.proceed(newRequest)
-    }
-}
-
 // Helpers
 inline fun <reified T> Response.parseAs(): T = Json.decodeFromString(body?.string().orEmpty())
 
@@ -336,9 +314,3 @@ data class SimpleChapter(
     val scanlators: List<String>,
     val mangaId: String? = null
 )
-```
-
-### 後續操作
-
-1.  更新程式碼後，請再次 Commit 並 Push 到 GitHub。
-2.  關於你看到的 `Failed to save cache entry` 錯誤：那些主要是 GitHub 伺服器端的暫時性問題，通常不會影響實際的 APK 編譯（只要看到最後有綠色勾勾或成功產出 Artifacts 即可）。如果編譯因為 "Process completed with exit code 1" 而失敗，通常是因為程式碼錯誤（如上面修復的 `Interceptor` 問題），修復後應該就能通過編譯了。
